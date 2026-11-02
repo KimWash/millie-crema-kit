@@ -1,0 +1,418 @@
+diff -ruN core_stock/java/util/jar/JarVerifier.smali core_cur/java/util/jar/JarVerifier.smali
+--- core_stock/java/util/jar/JarVerifier.smali	2026-11-02 13:31:48
++++ core_cur/java/util/jar/JarVerifier.smali	2026-11-02 13:30:38
+@@ -333,7 +333,7 @@
+     if-nez v1, :cond_a
+ 
+     .line 383
+-    const-string v1, "SHA SHA1"
++    const-string v1, "SHA SHA1 SHA-256"
+ 
+     .line 385
+     :cond_a
+@@ -1164,7 +1164,7 @@
+     if-nez v8, :cond_7b
+ 
+     .line 195
+-    const-string v8, "SHA SHA1"
++    const-string v8, "SHA SHA1 SHA-256"
+ 
+     .line 197
+     :cond_7b
+diff -ruN core_stock/org/apache/harmony/security/utils/JarUtils.smali core_cur/org/apache/harmony/security/utils/JarUtils.smali
+--- core_stock/org/apache/harmony/security/utils/JarUtils.smali	2026-11-02 13:31:49
++++ core_cur/org/apache/harmony/security/utils/JarUtils.smali	2026-11-02 13:30:38
+@@ -209,6 +209,80 @@
+     goto :goto_12
+ .end method
+ 
++.method static mvName(Ljava/lang/String;)Ljava/lang/String;
++    .registers 3
++    .param p0, "n"    # Ljava/lang/String;
++
++    .prologue
++    if-nez p0, :cond_3
++
++    return-object p0
++
++    :cond_3
++    const-string v0, "2.16.840.1.101.3.4.2.1"
++
++    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v1
++
++    if-eqz v1, :cond_e
++
++    const-string v0, "SHA256"
++
++    return-object v0
++
++    :cond_e
++    const-string v0, "1.3.14.3.2.26"
++
++    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v1
++
++    if-eqz v1, :cond_19
++
++    const-string v0, "SHA1"
++
++    return-object v0
++
++    :cond_19
++    const-string v0, "2.16.840.1.101.3.4.2.2"
++
++    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v1
++
++    if-eqz v1, :cond_24
++
++    const-string v0, "SHA384"
++
++    return-object v0
++
++    :cond_24
++    const-string v0, "2.16.840.1.101.3.4.2.3"
++
++    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v1
++
++    if-eqz v1, :cond_2f
++
++    const-string v0, "SHA512"
++
++    return-object v0
++
++    :cond_2f
++    invoke-static {p0}, Lorg/apache/harmony/security/utils/AlgNameMapper;->map2AlgName(Ljava/lang/String;)Ljava/lang/String;
++
++    move-result-object v0
++
++    if-eqz v0, :cond_36
++
++    return-object v0
++
++    :cond_36
++    return-object p0
++.end method
++
+ .method public static verifySignature(Ljava/io/InputStream;Ljava/io/InputStream;)[Ljava/security/cert/Certificate;
+     .registers 31
+     .param p0, "signature"    # Ljava/io/InputStream;
+@@ -489,19 +563,27 @@
+ 
+     .line 119
+     .local v8, "da":Ljava/lang/String;
++    invoke-static {v8}, Lorg/apache/harmony/security/utils/JarUtils;->mvName(Ljava/lang/String;)Ljava/lang/String;
++
++    move-result-object v8
++
+     invoke-virtual/range {v23 .. v23}, Lorg/apache/harmony/security/pkcs7/SignerInfo;->getDigestEncryptionAlgorithm()Ljava/lang/String;
+ 
+     move-result-object v9
+ 
+     .line 120
+     .local v9, "dea":Ljava/lang/String;
++    invoke-static {v9}, Lorg/apache/harmony/security/utils/JarUtils;->mvName(Ljava/lang/String;)Ljava/lang/String;
++
++    move-result-object v9
++
+     const/4 v3, 0x0
+ 
+     .line 121
+     .local v3, "alg":Ljava/lang/String;
+-    if-eqz v8, :cond_ea
++    if-eqz v8, :cond_f2
+ 
+-    if-eqz v9, :cond_ea
++    if-eqz v9, :cond_f2
+ 
+     .line 122
+     new-instance v27, Ljava/lang/StringBuilder;
+@@ -531,27 +613,27 @@
+     move-result-object v3
+ 
+     .line 124
+-    :try_start_e2
++    :try_start_ea
+     const-string v27, "AndroidOpenSSL"
+ 
+     move-object/from16 v0, v27
+ 
+     invoke-static {v3, v0}, Ljava/security/Signature;->getInstance(Ljava/lang/String;Ljava/lang/String;)Ljava/security/Signature;
+-    :try_end_e9
+-    .catch Ljava/security/NoSuchAlgorithmException; {:try_start_e2 .. :try_end_e9} :catch_190
++    :try_end_f1
++    .catch Ljava/security/NoSuchAlgorithmException; {:try_start_ea .. :try_end_f1} :catch_19c
+ 
+     move-result-object v22
+ 
+     .line 127
+-    :cond_ea
+-    :goto_ea
+-    if-nez v22, :cond_fb
++    :cond_f2
++    :goto_f2
++    if-nez v22, :cond_103
+ 
+     .line 128
+     move-object v3, v8
+ 
+     .line 129
+-    if-nez v3, :cond_f3
++    if-nez v3, :cond_fb
+ 
+     .line 130
+     const/16 v27, 0x0
+@@ -559,20 +641,20 @@
+     goto/16 :goto_2b
+ 
+     .line 133
+-    :cond_f3
+-    :try_start_f3
++    :cond_fb
++    :try_start_fb
+     const-string v27, "AndroidOpenSSL"
+ 
+     move-object/from16 v0, v27
+ 
+     invoke-static {v3, v0}, Ljava/security/Signature;->getInstance(Ljava/lang/String;Ljava/lang/String;)Ljava/security/Signature;
+-    :try_end_fa
+-    .catch Ljava/security/NoSuchAlgorithmException; {:try_start_f3 .. :try_end_fa} :catch_138
++    :try_end_102
++    .catch Ljava/security/NoSuchAlgorithmException; {:try_start_fb .. :try_end_102} :catch_140
+ 
+     move-result-object v22
+ 
+     .line 138
+-    :cond_fb
++    :cond_103
+     aget-object v27, v6, v19
+ 
+     move-object/from16 v0, v22
+@@ -607,7 +689,7 @@
+     invoke-virtual {v0, v1}, Ljava/io/InputStream;->read([B)I
+ 
+     .line 148
+-    if-nez v4, :cond_13d
++    if-nez v4, :cond_145
+ 
+     .line 149
+     move-object/from16 v0, v22
+@@ -617,7 +699,7 @@
+     invoke-virtual {v0, v1}, Ljava/security/Signature;->update([B)V
+ 
+     .line 170
+-    :cond_122
++    :cond_12a
+     invoke-virtual/range {v23 .. v23}, Lorg/apache/harmony/security/pkcs7/SignerInfo;->getEncryptedDigest()[B
+ 
+     move-result-object v27
+@@ -630,7 +712,7 @@
+ 
+     move-result v27
+ 
+-    if-nez v27, :cond_186
++    if-nez v27, :cond_192
+ 
+     .line 171
+     new-instance v27, Ljava/lang/SecurityException;
+@@ -644,7 +726,7 @@
+     .line 134
+     .end local v4    # "atr":Ljava/util/List;, "Ljava/util/List<Lorg/apache/harmony/security/x501/AttributeTypeAndValue;>;"
+     .end local v21    # "sfBytes":[B
+-    :catch_138
++    :catch_140
+     move-exception v10
+ 
+     .line 135
+@@ -657,7 +739,7 @@
+     .end local v10    # "e":Ljava/security/NoSuchAlgorithmException;
+     .restart local v4    # "atr":Ljava/util/List;, "Ljava/util/List<Lorg/apache/harmony/security/x501/AttributeTypeAndValue;>;"
+     .restart local v21    # "sfBytes":[B
+-    :cond_13d
++    :cond_145
+     invoke-virtual/range {v23 .. v23}, Lorg/apache/harmony/security/pkcs7/SignerInfo;->getEncodedAuthenticatedAttributes()[B
+ 
+     move-result-object v27
+@@ -677,13 +759,13 @@
+ 
+     move-result-object v16
+ 
+-    :cond_14d
+-    :goto_14d
++    :cond_155
++    :goto_155
+     invoke-interface/range {v16 .. v16}, Ljava/util/Iterator;->hasNext()Z
+ 
+     move-result v27
+ 
+-    if-eqz v27, :cond_16a
++    if-eqz v27, :cond_172
+ 
+     invoke-interface/range {v16 .. v16}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+ 
+@@ -707,20 +789,24 @@
+ 
+     move-result v27
+ 
+-    if-eqz v27, :cond_14d
++    if-eqz v27, :cond_155
+ 
+-    goto :goto_14d
++    goto :goto_155
+ 
+     .line 161
+     .end local v2    # "a":Lorg/apache/harmony/security/x501/AttributeTypeAndValue;
+-    :cond_16a
+-    if-eqz v13, :cond_122
++    :cond_172
++    if-eqz v13, :cond_12a
+ 
+     .line 162
+     invoke-virtual/range {v23 .. v23}, Lorg/apache/harmony/security/pkcs7/SignerInfo;->getDigestAlgorithm()Ljava/lang/String;
+ 
+     move-result-object v27
+ 
++    invoke-static/range {v27 .. v27}, Lorg/apache/harmony/security/utils/JarUtils;->mvName(Ljava/lang/String;)Ljava/lang/String;
++
++    move-result-object v27
++
+     invoke-static/range {v27 .. v27}, Ljava/security/MessageDigest;->getInstance(Ljava/lang/String;)Ljava/security/MessageDigest;
+ 
+     move-result-object v20
+@@ -737,7 +823,7 @@
+ 
+     move-result v27
+ 
+-    if-nez v27, :cond_122
++    if-nez v27, :cond_12a
+ 
+     .line 165
+     new-instance v27, Ljava/lang/SecurityException;
+@@ -752,7 +838,7 @@
+     .end local v7    # "computedDigest":[B
+     .end local v13    # "existingDigest":[B
+     .end local v20    # "md":Ljava/security/MessageDigest;
+-    :cond_186
++    :cond_192
+     aget-object v27, v6, v19
+ 
+     move-object/from16 v0, v27
+@@ -766,8 +852,8 @@
+     .line 125
+     .end local v4    # "atr":Ljava/util/List;, "Ljava/util/List<Lorg/apache/harmony/security/x501/AttributeTypeAndValue;>;"
+     .end local v21    # "sfBytes":[B
+-    :catch_190
++    :catch_19c
+     move-exception v27
+ 
+-    goto/16 :goto_ea
++    goto/16 :goto_f2
+ .end method
+diff -ruN core_stock/org/apache/harmony/xnet/provider/jsse/NativeCrypto.smali core_cur/org/apache/harmony/xnet/provider/jsse/NativeCrypto.smali
+--- core_stock/org/apache/harmony/xnet/provider/jsse/NativeCrypto.smali	2026-11-02 13:31:49
++++ core_cur/org/apache/harmony/xnet/provider/jsse/NativeCrypto.smali	2026-11-02 13:30:38
+@@ -469,6 +469,30 @@
+ 
+     invoke-static {v1, v2}, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->add(Ljava/lang/String;Ljava/lang/String;)V
+ 
++    const-string v1, "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
++
++    const-string v2, "ECDHE-RSA-AES128-GCM-SHA256"
++
++    invoke-static {v1, v2}, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->add(Ljava/lang/String;Ljava/lang/String;)V
++
++    const-string v1, "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
++
++    const-string v2, "ECDHE-RSA-AES256-GCM-SHA384"
++
++    invoke-static {v1, v2}, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->add(Ljava/lang/String;Ljava/lang/String;)V
++
++    const-string v1, "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
++
++    const-string v2, "ECDHE-ECDSA-AES128-GCM-SHA256"
++
++    invoke-static {v1, v2}, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->add(Ljava/lang/String;Ljava/lang/String;)V
++
++    const-string v1, "TLS_RSA_WITH_AES_128_GCM_SHA256"
++
++    const-string v2, "AES128-GCM-SHA256"
++
++    invoke-static {v1, v2}, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->add(Ljava/lang/String;Ljava/lang/String;)V
++
+     .line 346
+     sget-object v1, Lorg/apache/harmony/xnet/provider/jsse/NativeCrypto;->STANDARD_TO_OPENSSL_CIPHER_SUITES:Ljava/util/Map;
+ 
+@@ -1307,7 +1331,7 @@
+ 
+     .prologue
+     .line 376
+-    const/16 v0, 0x23
++    const/16 v0, 0x27
+ 
+     new-array v0, v0, [Ljava/lang/String;
+ 
+@@ -1521,6 +1545,30 @@
+ 
+     aput-object v2, v0, v1
+ 
++    const/16 v1, 0x23
++
++    const-string v2, "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
++
++    aput-object v2, v0, v1
++
++    const/16 v1, 0x24
++
++    const-string v2, "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
++
++    aput-object v2, v0, v1
++
++    const/16 v1, 0x25
++
++    const-string v2, "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
++
++    aput-object v2, v0, v1
++
++    const/16 v1, 0x26
++
++    const-string v2, "TLS_RSA_WITH_AES_128_GCM_SHA256"
++
++    aput-object v2, v0, v1
++
+     return-object v0
+ .end method
+ 
+@@ -1529,7 +1577,7 @@
+ 
+     .prologue
+     .line 466
+-    const/4 v0, 0x2
++    const/4 v0, 0x4
+ 
+     new-array v0, v0, [Ljava/lang/String;
+ 
+@@ -1542,6 +1590,18 @@
+     const/4 v1, 0x1
+ 
+     const-string v2, "TLSv1"
++
++    aput-object v2, v0, v1
++
++    const/4 v1, 0x2
++
++    const-string v2, "TLSv1.1"
++
++    aput-object v2, v0, v1
++
++    const/4 v1, 0x3
++
++    const-string v2, "TLSv1.2"
+ 
+     aput-object v2, v0, v1
+ 

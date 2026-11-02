@@ -1,0 +1,10 @@
+# kotlin-reflect warm-up (framework AppWarmup) for the classes Jackson KotlinModule introspects in JsWrapper.didLoadToLocation.
+# Triggered synchronously when the EPUB viewer activity is created: after AppGuard finished swapping its dex zips
+# (an earlier/background warm-up raced that and broke kotlin-reflect: "Built-in class kotlin.Any is not found").
+# Preferred: on the main thread when idle, 5 s after the bookshelf is created (bookshelf appears ~15 s after
+# process start, well after AppGuard's swap at 5-12 s), so the first book open doesn't pay the ~2 s.
+# Fallback if the user opens a book before that: the viewer activity creation (runs only once per process).
+@idle kr.co.millie.eink.bookshelf.BookshelfActivity 5000
+@activity kr.co.millie.eink.epub.EPubViewActivity
+kr.co.millie.core.epubbase.model.BookToc
+kr.co.millie.core.epubbase.model.Book

@@ -1,0 +1,4 @@
+# exact loadUrl repeats to drop when no new touch/key DOWN arrived since the last accepted one (framework WebCompat.shouldDropLoadUrl).
+# One tap -> the app issues the page turn twice on this WebView. Window in ms.
+javascript:app.goToNextPage()	3000
+javascript:app.goToPrevPage()	3000

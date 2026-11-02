@@ -1,0 +1,2 @@
+#!/bin/zsh
+adb shell "su -c 'E=/dev/input/event1; sendevent \$E 3 57 0; sendevent \$E 3 53 500; sendevent \$E 3 54 377; sendevent \$E 3 48 50; sendevent \$E 3 58 50; sendevent \$E 0 2 0; sendevent \$E 0 0 0; sleep 1; sendevent \$E 3 53 500; sendevent \$E 3 54 377; sendevent \$E 3 48 50; sendevent \$E 3 58 50; sendevent \$E 0 2 0; sendevent \$E 0 0 0; sleep 1; sendevent \$E 0 2 0; sendevent \$E 0 0 0'"

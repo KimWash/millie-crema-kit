@@ -1,0 +1,4 @@
+# Glide: Bitmap.reconfigure (API 19) is missing on 4.2, so reusing pooled bitmaps fails the image load.
+# Disable Glide bitmap pooling: pool max size 0 (puts are rejected) and drop anything already pooled.
+com.bumptech.glide.Glide glide.bitmapPool.maxSize 0
+com.bumptech.glide.Glide glide.bitmapPool.clearMemory ()

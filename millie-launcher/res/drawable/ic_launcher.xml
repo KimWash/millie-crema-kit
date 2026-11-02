@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fallback icon: build_launcher.sh uses the icon from your Millie APK when one is given. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FF000000" />
+    <corners android:radius="12dp" />
+    <size android:width="48dp" android:height="48dp" />
+</shape>

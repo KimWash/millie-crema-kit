@@ -1,0 +1,1 @@
+# re-point Context fields of thread-held objects (e.g. NanoHTTPD LocalServerAgent.mContext) from a destroyed Activity to the Application context

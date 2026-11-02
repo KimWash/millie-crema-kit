@@ -1,0 +1,1 @@
+dalvik.vm.heapstartsize=16m;dalvik.vm.heapminfree=4m;dalvik.vm.heapmaxfree=16m

@@ -1,0 +1,7 @@
+# find<TAB>replace (applied to android_asset .js/.html/.css)
+display: inline-flex;	display: -webkit-inline-box; display: inline-flex;
+flex-shrink: 0;	-webkit-box-flex: 0; flex-shrink: 0;
+initial-scale=1.0, viewport-fit=cover	initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no
+-webkit-overflow-scrolling: touch;	-webkit-overflow-scrolling: auto;
+# EPUB touch: drop the per-tap temporary <input> focus/blur cycle (ported from hegelty/millie-on-kitkat EpubTouchCompat, viewer lib 1.5.7)
+(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:document,e=t.createElement("input");e.setAttribute("type","text"),e.setAttribute("readonly","readonly"),t.querySelector("body").appendChild(e),e.focus(),e.blur(),e.parentNode.removeChild(e)}	(){}

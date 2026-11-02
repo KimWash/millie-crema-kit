@@ -1,0 +1,7 @@
+.build/
+.cache/
+*/out/
+*.keystore
+*.idsig
+.DS_Store
+millie-compat/tools/bin/
