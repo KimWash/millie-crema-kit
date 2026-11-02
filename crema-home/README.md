@@ -1,83 +1,87 @@
-# crema-home — 크레마 홈
+# crema-home
 
-크레마 카르타(758×1024 전자잉크, RAM 512MB, Android 4.2.2)용 홈 런처입니다. 신문 지면처럼 짠 화면에 이어 읽기, 서재, 앱, 설정을 담았습니다. (패키지 `kr.co.crema.home`, APK 약 1.36MB, 실행 중 메모리 약 8MB)
+CREMA-0640L(758×1024 전자잉크, RAM 512MB, Android 4.2.2)용 홈 런처. 패키지 `kr.co.crema.home`.
 
-## 문제
+APK 약 1.36MB, 메모리 약 8MB(PSS), 콜드 스타트 약 0.43초.
 
-- 기본 홈(YES24 스토어)은 서비스 종료로 쓸 수 없고, 다른 런처는 4.2에서 안 돌거나 전자잉크·저사양에 맞지 않습니다.
-- 밀리의 서재는 읽던 책 정보를 바깥에 내주지 않습니다(앱 데이터 접근 불가). 홈에 "이어 읽기"를 보여 주려면 다른 출처가 필요합니다.
-- 기기가 매우 느리고 메모리가 빠듯해서, 보통 앱처럼 만들면 화면 전환 하나에도 버벅이고 잔상이 남습니다.
+## 화면 구성
 
-## 화면
+| 홈 | 서재 | 설정 | 실행 중인 앱 |
+|:---:|:---:|:---:|:---:|
+| <img src="../docs/screenshots/home.png" width="190"> | <img src="../docs/screenshots/library.png" width="190"> | <img src="../docs/screenshots/settings.png" width="190"> | <img src="../docs/screenshots/running-apps.png" width="190"> |
 
 | 탭 | 내용 |
 |---|---|
-| 홈 | 이어 읽기(표지, 쪽수, 진행률, "N쪽부터 이어 읽기"), 서재의 다른 책 3권, 홈에 둔 앱(최대 5개) |
-| 서재 | KOReader로 읽은 책 4×3 격자, 페이지 넘김(버튼·좌우 밀기). 책을 누르면 KOReader에서 바로 열림 |
-| 앱 | 설치된 앱 전체, 가나다 순, 2열 × 6줄 페이지 |
-| 설정 | 프런트라이트(켜기/끄기, 5단계), Wi-Fi, 절전 화면 이미지, 홈에 표시할 앱, RSS 구독 피드, 기기 정보 |
+| 홈 | 이어 읽기(표지, 쪽수, 진행률), 서재의 다른 책 3권, 홈 앱(최대 5개) |
+| 서재 | KOReader 읽기 기록 4×3 격자, 페이지 단위 이동. 선택 시 KOReader에서 실행 |
+| 앱 | 설치된 앱 전체, 가나다 순, 2열 × 6행 |
+| 설정 | 프런트라이트(켜기/끄기, 5단계), Wi-Fi, 절전 화면 이미지, 홈 앱 선택, RSS 구독, 기기 정보 |
 
-- **상태 표시줄 대신** 화면 맨 위에 Wi-Fi·배터리·시각·밝기를 직접 그립니다(시스템 상태 표시줄은 숨김).
-- **홈 버튼 두 번** → 실행 중인 앱 화면: 앱별 메모리 사용량, 눌러서 전환, ✕로 완전 종료, "모두 닫기".
-- 디자인 원본: Figma "Crema Launcher — Newspaper"의 v1 섹션.
+- 시스템 상태 표시줄은 숨기고 Wi-Fi·배터리·시각·밝기를 직접 표시
+- 홈 버튼 두 번: 실행 중인 앱 목록(메모리 사용량, 전환, 종료, 전체 종료)
+- 디자인: Figma "Crema Launcher — Newspaper" v1 섹션
 
-## 데이터는 어디서 오나
+## 데이터 소스
 
-| 항목 | 출처 |
+| 항목 | 소스 |
 |---|---|
-| 읽은 책, 진행률, 저자 | KOReader `history.lua`와 책 옆 `.sdr/metadata.*.lua` |
-| 오늘 읽은 시간, 연속 독서일 | KOReader `settings/statistics.sqlite3` (복사본을 읽어 KOReader 파일을 잠그지 않음) |
-| 표지 | EPUB 안의 표지 이미지 |
-| 밝기 | 기기 제조사 API(`android.hardware.DeviceController`), 없으면 `/sys/class/backlight/rk28_bl/brightness` (0~160) |
-| RSS | 앱이 직접 받음. 기본 GeekNews(FeedBurner 미러). 원래 주소는 4.2가 못 쓰는 암호만 받아서 미러를 씀 |
+| 읽기 기록, 진행률, 저자 | KOReader `history.lua`, `<책>.sdr/metadata.*.lua` |
+| 오늘 읽은 시간, 연속 독서일 | KOReader `settings/statistics.sqlite3` (복사본 사용) |
+| 표지 | EPUB 내부 표지 이미지 |
+| 밝기 | `android.hardware.DeviceController`, 없으면 `/sys/class/backlight/rk28_bl/brightness` (0~160) |
+| RSS | 직접 수신. 기본값 GeekNews FeedBurner 미러 (원 주소는 4.2에서 지원하지 않는 암호만 허용) |
 
-## 저사양 최적화
+밀리의 서재는 읽기 기록을 외부에 제공하지 않아 이어 읽기에 표시되지 않는다.
 
-- **폰트:** Pretendard를 한글 2,350자 + 영문으로 줄이고 굵기 4개만 고정(1.57MB → 320KB/개). 이 범위 밖 글자가 든 문자열만 시스템 폰트로 그림. APK 안에 압축 없이 넣어 메모리에 펼치지 않음.
-- **화면:** 화면 전체가 View 하나. 레이아웃 파일·위젯·애니메이션·하드웨어 가속 없이 Figma 좌표 그대로 캔버스에 그림. 터치는 사각형 목록으로 판정.
-- **갱신:** 1초 타이머 없음. 시각은 1분 신호에 맞춰 위쪽 띠만 다시 그림. 배터리·Wi-Fi는 바뀌었다는 알림이 올 때만. 홈이 안 보일 때는 신호도 받지 않음.
-- **데이터:** 파일 수정 시각이 바뀔 때만 다시 읽고, 내용이 실제로 달라졌을 때만 다시 그림(돌아올 때마다 깜빡이지 않게).
-- **이미지:** 그림은 미리 16단계 회색으로 만들어 넣음. 앱 아이콘은 첫 글자 타일이라 다른 앱 아이콘을 읽지 않음. 표지는 한 번만 꺼내 칸 크기로 잘라 작은 파일로 저장.
-- **전자잉크:** 펌웨어의 `View.fullRefresh()`(SurfaceFlinger 전체 갱신)를 **새 화면을 그린 직후** 호출. 탭 전환, 다른 앱에서 돌아올 때, 페이지 다섯 번 넘길 때마다 잔상을 지움.
-- 모든 파일·DB·네트워크 작업은 우선순위 낮은 스레드 하나에서.
+## 최적화
+
+| 항목 | 내용 |
+|---|---|
+| 폰트 | Pretendard를 KS X 1001 한글 2,350자 + ASCII로 서브셋, 4개 굵기(각 1.57MB → 320KB). 범위 밖 문자는 시스템 폰트. APK 내 무압축 저장 |
+| 렌더링 | View 1개에 Canvas로 직접 그림. 레이아웃·위젯·애니메이션·하드웨어 가속 미사용. 터치는 사각형 목록으로 판정 |
+| 갱신 | `ACTION_TIME_TICK`에 상태 영역만 갱신. 배터리·Wi-Fi는 브로드캐스트 수신 시에만. 화면 비표시 중 수신 해제 |
+| 데이터 | 파일 mtime 변경 시에만 재파싱, 내용이 바뀐 경우에만 다시 그림 |
+| 이미지 | 16단계 회색으로 사전 변환, RGB_565 디코딩. 앱 아이콘은 글자 타일(다른 앱 아이콘 미로드). 표지는 칸 크기로 잘라 캐시 |
+| 전자잉크 | `View.fullRefresh()`(SurfaceFlinger 전체 갱신)를 새 프레임 그린 뒤 호출. 탭 전환, 다른 앱에서 복귀, 페이지 5회 이동마다 |
+| 스레드 | 파일·DB·네트워크 작업은 낮은 우선순위 스레드 1개 |
 
 ## 홈 버튼 두 번
 
-이 기기에는 홈 키가 따로 없고, 앞면 버튼(커널은 BACK으로 보고)이 시스템에서 **홈(keycode 3)** 으로 바뀌어 들어옵니다. 누를 때마다 런처에 홈 요청이 오므로, 0.7초 안에 두 번 오면 실행 중인 앱 화면을 엽니다. 한 번 누를 때는 지연이 없습니다.
+기기에 별도 홈 키가 없고, 앞면 버튼(커널 KEY_BACK)이 시스템에서 keycode 3(HOME)으로 처리된다. 누를 때마다 런처에 HOME 인텐트가 전달되며, 700ms 이내 두 번째 인텐트를 받으면 실행 중인 앱 화면을 연다. 단일 입력에는 지연이 없다.
 
-앱 닫기는 루트 권한의 `am force-stop`을 먼저 씁니다. 일반 종료(`killBackgroundProcesses`)는 화면 기록을 남겨서 밀리 같은 앱이 다음에 죽은 화면으로 열리기 때문입니다. 처음 한 번 SuperSU 허용 창이 뜹니다.
+앱 종료는 `su -c am force-stop`을 우선 사용한다. `killBackgroundProcesses`는 태스크를 남겨 다음 실행 시 이전 화면이 복원된다. 최초 1회 SuperSU 권한 요청이 표시된다.
 
 ## 밀리의 서재
 
-밀리는 항상 [`millie-launcher`](../millie-launcher/)(래퍼)를 거쳐 엽니다. 원본 항목은 앱 목록에서 숨깁니다. 밀리 아이콘은 이 저장소에 넣지 않고, 설치된 밀리 앱에서 실행 중에 읽어 회색으로 바꿔 씁니다(밀리가 없으면 글자 타일).
+밀리는 [`millie-launcher`](../millie-launcher/)를 통해 실행한다. 원본 항목은 앱 목록에서 숨긴다. 밀리 아이콘은 설치된 앱에서 실행 시 읽어 회색으로 변환한다(미설치 시 글자 타일).
 
-## 빌드와 설치
+## 빌드 및 설치
 
 ```
-crema-home/build.sh                 # → crema-home/out/crema-home.apk
-./install.sh --crema-home           # 빌드 + 설치
+crema-home/build.sh            # crema-home/out/crema-home.apk
+./install.sh --crema-home
 ```
-설치 뒤 기기에서 홈 버튼 → "크레마 홈" 선택 → "항상".
 
-## 기기 정리 (선택)
+설치 후 홈 버튼 → "크레마 홈" → "항상".
 
-런처와 별개로 기기 쪽에서 해 두면 좋은 것들입니다.
+## 기기 설정
 
 ```
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
 ```
-- 애니메이션을 끄면 앱 전환 때 전자잉크에 중간 프레임이 남지 않습니다(바로 적용, 재부팅 불필요). 되돌릴 때는 값을 1로.
-- 죽은 기본 앱 비활성화는 `./install.sh --debloat`(검증된 목록만).
-- **`com.android.location.fused`는 끄지 마세요**(4.2에서 부트루프). `com.android.rk.mediafloat`, `com.eink.epdc`, `com.inno.*`도 유지.
 
-## 알아 둘 점
+- 애니메이션 비활성화: 앱 전환 시 중간 프레임 제거. 즉시 적용. 원복은 값 1.
+- 기본 앱 비활성화는 `./install.sh --debloat` 사용.
+- `com.android.location.fused` 비활성화 금지(부트루프). `com.android.rk.mediafloat`, `com.eink.epdc`, `com.inno.*` 유지.
 
-- 화면 좌표가 758×1024에 고정돼 있어 다른 해상도 기기에서는 맞지 않습니다.
-- RSS "홈에 표시"는 설정만 저장되고, 홈의 RSS 면은 아직 없습니다.
-- 아이폰 핫스팟이 데이터를 안 넘길 때 Wi-Fi는 "연결됨"으로 보입니다. 이 상태를 감지해 알려 주는 기능은 아직 없습니다.
+## 알려진 문제
+
+- 좌표가 758×1024 기준으로 고정
+- RSS "홈에 표시"는 설정값만 저장되며 홈 RSS 화면은 미구현
+- Wi-Fi 연결 상태에서 데이터가 전달되지 않는 경우를 감지하지 않음
 
 ## 라이선스
 
-`assets/fonts/p-*.otf`는 Pretendard의 일부 글자만 담은 파생 폰트로, SIL Open Font License 1.1(`assets/fonts/OFL.txt`)을 따릅니다. 예약 글꼴 이름 때문에 내부 이름을 "CremaHome Sans"로 바꿨습니다.
+`assets/fonts/p-*.otf`는 Pretendard 서브셋으로 SIL Open Font License 1.1(`assets/fonts/OFL.txt`)을 따른다. 예약 글꼴 이름 조항에 따라 내부 이름을 "CremaHome Sans"로 변경했다.

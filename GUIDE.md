@@ -1,28 +1,45 @@
-# 적용 가이드 (일반 사용자용)
+# 설치 가이드
 
-크레마 카르타에서 밀리의 서재를 다시 쓰고, 새 홈 화면(크레마 홈)을 설치하는 방법을 순서대로 설명합니다. 컴퓨터에서 명령어 몇 줄을 입력해야 하지만, 아래 순서를 그대로 따라 하면 됩니다.
+CREMA-0640L에 millie-crema-kit을 적용하는 절차. 밀리의 서재 실행 환경과 크레마 홈 런처를 설치한다.
 
-> **먼저 알아 두세요**
-> - 이 작업은 기기의 시스템 파일을 바꿉니다. 설치기가 자동으로 백업과 되돌리기 스크립트를 만들지만, **문제가 생겨도 스스로 책임질 수 있을 때만** 진행하세요.
-> - 본인 계정으로 본인이 산 책을 읽기 위한 것입니다. DRM이나 구독을 우회하지 않습니다.
-> - 걸리는 시간: 준비 30분 + 설치 10~20분(첫 부팅이 몇 분 걸립니다).
+<img src="docs/screenshots/home.png" width="300"> <img src="docs/screenshots/running-apps.png" width="300">
 
----
+## 주의 사항
 
-## 1. 준비물
+- 기기 시스템 파일을 변경한다. 설치 스크립트가 백업과 복원 스크립트를 생성하지만, 문제 발생 시 책임은 사용자에게 있다.
+- 본인 계정으로 구매·구독한 콘텐츠 열람 목적이다. DRM과 구독 처리는 변경하지 않는다.
+- 소요 시간: 준비 약 30분, 설치 10~20분(첫 부팅 수 분 포함).
 
-| 준비물 | 설명 |
+## 다운로드
+
+| 항목 | 링크 | 비고 |
+|---|---|---|
+| millie-crema-kit | `git clone https://github.com/KimWash/millie-crema-kit.git` | 이 저장소 |
+| 밀리의서재 E-ink 뷰어 | [공식 다운로드 페이지 (E-ink 뷰어)](https://www.millie.co.kr/v3/customer/download?nav_hidden=y#elink) | 현재 배포 버전은 v2.14.2.0(Android 6.0 이상). 이 키트는 **2.4.0.0** 기준이며 2.14.2.0은 검증하지 않음 |
+| 밀리 E-ink 이용 가이드 | [PDF](https://apis.millie.co.kr/v1/download/guide/eink-guide_210201.pdf) | 밀리 공식 |
+| 밀리 E-ink 슬립 화면 | [ZIP](https://install.millie.co.kr/e-ink/sleep-image_210203.zip) | 밀리 공식. 압축을 풀어 기기의 `sleep` 폴더에 넣으면 절전 화면으로 사용 |
+| KOReader 2023.06.1 (arm) | [APK 직접 받기](https://github.com/koreader/koreader/releases/download/v2023.06.1/koreader-android-arm-v2023.06.1.apk) · [릴리스 페이지](https://github.com/koreader/koreader/releases/tag/v2023.06.1) | Android 4.2를 지원하는 마지막 버전. 이후 버전은 설치 불가 |
+
+밀리 2.4.0.0 APK는 공식 페이지에서 더 이상 제공하지 않는다. 이미 2.4.0.0이 설치된 기기가 있으면 다음과 같이 추출한다.
+
+```bash
+adb pull $(adb shell pm path kr.co.millie.eink | tr -d '\r' | sed 's/package://') Millie-2.4.0.0.apk
+```
+
+## 준비물
+
+| 항목 | 내용 |
 |---|---|
-| 크레마 카르타 **CREMA-0640L** | Android 4.2.2 기기. 다른 크레마 모델에서는 확인하지 않았습니다 |
-| **루팅된 상태** | 시스템을 고치려면 루트 권한이 필요합니다. 아래 [3. 루팅](#3-루팅)을 보세요 |
-| USB 케이블 | 데이터 전송이 되는 케이블 |
-| 컴퓨터 | macOS 또는 Linux |
-| 밀리의 서재 **2.4.0.0** APK | 원본 APK 파일. 이 저장소에는 들어 있지 않습니다 |
-| 배터리 | 50% 이상, 가능하면 충전기에 연결 |
+| 기기 | CREMA-0640L (Android 4.2.2). 다른 모델은 미검증 |
+| 루트 권한 | 필요. [루팅](#루팅) 참고 |
+| 케이블 | 데이터 전송 가능한 USB 케이블 |
+| PC | macOS 또는 Linux |
+| 밀리 APK | 2.4.0.0. [다운로드](#다운로드) 참고 |
+| 배터리 | 50% 이상, 충전기 연결 권장 |
 
-## 2. 컴퓨터 준비
+## PC 환경 준비
 
-macOS 기준입니다. 터미널을 열고 한 줄씩 입력하세요. ([Homebrew](https://brew.sh)가 없다면 먼저 설치하세요.)
+macOS 기준. [Homebrew](https://brew.sh) 필요.
 
 ```bash
 brew install --cask android-platform-tools temurin
@@ -36,11 +53,11 @@ brew install --cask android-commandlinetools
 sdkmanager "build-tools;34.0.0" "platforms;android-17"
 ```
 
-- `android-platform-tools`: 기기와 연결하는 `adb`
-- `temurin`: 자바(JDK). 패치와 앱을 만드는 데 필요
-- `build-tools`, `platforms;android-17`: 앱을 만드는 도구
-
-이 저장소를 내려받아 그 폴더로 이동합니다.
+| 패키지 | 용도 |
+|---|---|
+| android-platform-tools | `adb` |
+| temurin | JDK (패치·앱 빌드) |
+| build-tools, platforms;android-17 | APK 빌드 도구 |
 
 ```bash
 git clone https://github.com/KimWash/millie-crema-kit.git
@@ -50,122 +67,121 @@ git clone https://github.com/KimWash/millie-crema-kit.git
 cd millie-crema-kit
 ```
 
-## 3. 루팅
+## 루팅
 
-설치기는 루트 권한(`su`)으로 시스템을 바꿉니다.
-
-- **이미 루팅돼 있다면** 이 단계는 건너뜁니다.
-- **처음이라면**, 기기의 adb가 관리자 권한으로 돌 수 있는 경우 설치기가 대신 루팅해 줍니다. SuperSU 설치 파일(zip)을 구해 다음처럼 실행합니다.
+- 이미 루팅된 경우 생략.
+- adbd를 root로 실행할 수 있는 기기는 설치 스크립트로 루팅할 수 있다. SuperSU 설치 zip이 필요하다.
   ```bash
   ./install.sh --root --su-zip SuperSU.zip
   ```
-  이 방법이 안 되는 기기라면 크레마 카르타 루팅에 관한 커뮤니티 자료를 참고해 먼저 루팅해야 합니다.
+- 위 방법이 동작하지 않으면 CREMA-0640L 루팅 관련 자료를 참고해 먼저 루팅한다.
 
-## 4. 기기 연결
+## 기기 연결
 
-1. 크레마에서 **설정 → 태블릿 정보(기기 정보)** 로 들어가 **빌드 번호를 7번** 누릅니다. "개발자가 되었습니다"가 뜹니다.
-2. **설정 → 개발자 옵션 → USB 디버깅** 을 켭니다.
-3. USB로 컴퓨터에 연결하고, 크레마에 뜨는 "USB 디버깅을 허용하시겠습니까?"에서 **항상 허용** 체크 후 확인.
-4. 컴퓨터에서 연결을 확인합니다.
+1. 설정 → 태블릿 정보(기기 정보) → 빌드 번호를 7회 누른다.
+2. 설정 → 개발자 옵션 → USB 디버깅을 켠다.
+3. USB로 연결하고, 기기의 "USB 디버깅 허용" 창에서 "항상 허용"을 선택한다.
+4. 연결을 확인한다.
    ```bash
    adb devices
    ```
-   목록에 기기가 `device`로 보이면 됩니다. `unauthorized`면 3번 허용 창을 다시 확인하세요.
+   상태가 `device`이면 정상. `unauthorized`이면 3번을 다시 확인한다.
 
-## 5. 설치
+## 설치
 
-밀리 APK를 이 폴더에 `Millie-2.4.0.0.apk`라는 이름으로 넣고 실행합니다.
+밀리 APK를 저장소 폴더에 `Millie-2.4.0.0.apk`로 두고 실행한다.
 
 ```bash
 ./install.sh --all --debloat --apk Millie-2.4.0.0.apk --install-millie
 ```
 
-한 번에 다 설치하는 명령입니다. 하나씩 고르고 싶으면 `./install.sh`만 입력하면 질문이 차례로 나옵니다. 모르겠으면 기본값(Enter)으로 두세요.
+항목을 선택하려면 `./install.sh`만 실행한다. 질문에 Enter를 누르면 기본값이 적용된다.
 
-| 항목 | 하는 일 |
+| 항목 | 내용 |
 |---|---|
-| framework, core, system | 밀리가 4.2에서 돌도록 시스템을 고침 |
-| wrap, webcompat | 책 보기(EPUB·PDF)와 검색이 되게 함 |
-| launcher | 홈의 "밀리의 서재" 아이콘(밀리를 안전하게 여는 앱) |
-| crema-home | 새 홈 화면 |
-| debloat | 서비스가 끝난 YES24·크레마 기본 앱을 끔(되돌릴 수 있음) |
+| framework, core, system | 밀리 실행에 필요한 시스템 패치 |
+| wrap, webcompat | EPUB·PDF 보기, 검색 |
+| launcher | 밀리 래퍼 앱("밀리의 서재" 아이콘) |
+| crema-home | 홈 런처 |
+| debloat | 미사용 YES24·CREMA 기본 앱 비활성화 |
 
-설치기가 끝나면 기기가 **재부팅**됩니다. 시스템을 바꾼 뒤 첫 부팅은 모든 앱을 다시 준비하느라 **몇 분** 걸립니다. 화면이 멈춘 것처럼 보여도 기다리세요. 설치기는 부팅이 끝나면 밀리 앱을 설치하고 "done"을 출력합니다.
+설치가 끝나면 기기가 재부팅된다. 시스템 변경 후 첫 부팅은 전체 앱 최적화로 수 분이 걸린다. 부팅이 완료되면 스크립트가 밀리를 설치하고 `done`을 출력한다.
 
-## 6. 홈 화면 설정
+## 홈 런처 설정
 
-1. 크레마의 **앞면 버튼(홈)** 을 누릅니다.
-2. "어떤 앱을 사용하시겠습니까?"에서 **크레마 홈**을 한 번 눌러 고른 뒤 **항상**을 누릅니다.
-   - 같은 항목을 두 번 누르면 "이번만"으로 처리되니 한 번만 누르세요.
+1. 기기 앞면 버튼(홈)을 누른다.
+2. 앱 선택 창에서 "크레마 홈"을 한 번 누르고 "항상"을 누른다. 같은 항목을 두 번 누르면 "이번만"으로 처리된다.
 
-## 7. 밀리 로그인
+## 밀리의 서재 로그인
 
-1. 크레마 홈에서 **밀리의 서재**를 누릅니다.
-2. Wi-Fi가 연결 중이면 "인터넷 연결 확인 중" 화면이 잠깐 뜹니다. 연결되면 자동으로 넘어갑니다.
-3. 로그인 화면에서 본인 계정으로 로그인하면 내 서재가 나옵니다.
+1. 크레마 홈에서 "밀리의 서재"를 누른다.
+2. Wi-Fi 연결 중이면 "인터넷 연결 확인 중" 화면이 표시되고, 연결되면 자동으로 넘어간다.
+3. 계정으로 로그인한다.
 
-처음 책을 열 때는 시간이 조금 걸립니다(오래된 기기에서 최신 앱을 돌리는 것이라 그렇습니다).
+첫 책 열기는 시간이 걸린다.
 
-## 8. (선택) KOReader
+## KOReader 설치 (선택)
 
-크레마 홈의 "이어 읽기"와 "서재"는 KOReader로 읽은 책을 보여 줍니다. 밀리 책은 여기에 나오지 않습니다(밀리가 읽기 기록을 바깥에 공개하지 않음).
+크레마 홈의 이어 읽기와 서재는 KOReader 읽기 기록을 표시한다. 밀리의 서재 책은 표시되지 않는다.
 
-KOReader를 쓰려면 **2023.06.1 버전(arm)** 을 설치하세요. 그 이후 버전은 Android 4.2를 지원하지 않습니다. KOReader GitHub 릴리스에서 받을 수 있습니다.
+```bash
+curl -LO https://github.com/koreader/koreader/releases/download/v2023.06.1/koreader-android-arm-v2023.06.1.apk
+```
 
 ```bash
 adb install koreader-android-arm-v2023.06.1.apk
 ```
 
-## 9. 크레마 홈 사용법
+## 크레마 홈 사용법
+
+| 홈 | 서재 | 설정 |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/home.png" width="220"> | <img src="docs/screenshots/library.png" width="220"> | <img src="docs/screenshots/settings.png" width="220"> |
 
 | 동작 | 결과 |
 |---|---|
-| 아래쪽 **홈 / 서재 / 앱 / 설정** | 화면 전환 |
-| 홈의 큰 버튼 "N쪽부터 이어 읽기" | KOReader에서 읽던 책 열기 |
-| 서재·앱에서 **좌우로 밀기** | 페이지 넘기기 |
-| **홈 버튼 두 번** | 실행 중인 앱 화면: 메모리 확인, 전환, ✕로 닫기 |
+| 하단 홈 / 서재 / 앱 / 설정 | 화면 전환 |
+| "N쪽부터 이어 읽기" | KOReader에서 읽던 책 열기 |
+| 서재·앱에서 좌우 스와이프 | 페이지 이동 |
+| 홈 버튼 두 번 | 실행 중인 앱 목록: 메모리 확인, 전환, 종료 |
 | 설정 → 밝기 | 프런트라이트 켜기/끄기, 5단계 |
-| 설정 → 홈 화면 → 홈에 표시할 앱 | 홈에 둘 앱 최대 5개, 켠 순서대로 |
+| 설정 → 홈 화면 → 홈에 표시할 앱 | 홈 앱 최대 5개, 켠 순서대로 표시 |
 
-## 10. 문제가 생기면
+| 홈 앱 선택 | 실행 중인 앱 |
+|:---:|:---:|
+| <img src="docs/screenshots/home-apps.png" width="260"> | <img src="docs/screenshots/running-apps.png" width="260"> |
 
-**밀리가 로딩만 계속돼요**
-홈 버튼을 두 번 눌러 실행 중인 앱 화면에서 밀리의 ✕를 누르고 다시 여세요. 처음 한 번은 "SuperSU 권한 요청"이 뜨니 **허용**하세요.
+## 문제 해결
 
-**Wi-Fi는 연결됐다는데 밀리가 인터넷 연결을 계속 기다려요**
-휴대폰 핫스팟을 쓸 때 자주 생깁니다. 기기는 연결된 것으로 보지만 실제 데이터가 안 흐르는 상태입니다.
-- 아이폰: 설정 → 개인용 핫스팟 화면을 켜 두고, **호환성 최대화**를 켜세요.
-- 그래도 안 되면 핫스팟을 껐다 켜세요.
+| 증상 | 조치 |
+|---|---|
+| 밀리가 로딩만 반복 | 홈 버튼 두 번 → 밀리의 ✕로 종료 후 다시 실행. 최초 1회 SuperSU 권한 요청은 허용 |
+| Wi-Fi 연결 상태인데 밀리가 인터넷 연결을 계속 대기 | 휴대폰 핫스팟에서 주로 발생. 아이폰은 설정 → 개인용 핫스팟 화면을 연 상태로 두고 "호환성 최대화"를 켠다. 계속되면 핫스팟을 껐다 켠다 |
+| 화면 잔상 | 탭을 전환하면 전체 갱신된다 |
+| 부트루프 | 부팅 중 `adb devices`에 기기가 보이면 [복원](#복원) 실행 |
 
-**화면에 잔상이 남아요**
-탭을 한 번 바꾸면 전체 화면이 새로 그려집니다.
+`com.android.location.fused`(위치 서비스)를 비활성화하면 Android 4.2에서 부트루프가 발생한다. 기본 앱을 직접 비활성화할 때 제외한다.
 
-**부팅이 계속 반복돼요(부트루프)**
-부팅 중에도 컴퓨터에서 `adb devices`에 기기가 보이면 아래 [되돌리기](#11-되돌리기)를 실행하세요.
-- 설정에서 **`com.android.location.fused`(위치 서비스)를 끄면 4.2에서 부트루프가 납니다.** 기본 앱을 직접 끌 때 이것은 절대 끄지 마세요.
+## 복원
 
-## 11. 되돌리기
-
-설치할 때마다 기기에 되돌리기 스크립트가 저장됩니다. 가장 최근 것을 확인하고 실행합니다.
+설치 때마다 기기에 복원 스크립트가 생성된다.
 
 ```bash
 adb shell ls /sdcard/millie-crema-backup/
 ```
 
 ```bash
-adb shell su -c "sh /sdcard/millie-crema-backup/<위에서 본 시각>/restore.sh"
+adb shell su -c "sh /sdcard/millie-crema-backup/<시각>/restore.sh"
 ```
 
 ```bash
 adb reboot
 ```
 
-크레마 홈만 지우려면:
+크레마 홈만 제거:
 
 ```bash
 adb uninstall kr.co.crema.home
 ```
 
----
-
-더 자세한 기술 설명은 [README.md](README.md)와 각 폴더의 README를 보세요.
+기술 상세는 [README.md](README.md)와 각 디렉터리의 README 참고.
