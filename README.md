@@ -114,3 +114,20 @@ kyobo-bridge/
 usb-net/
 GUIDE.md
 ```
+
+## Special Thanks
+
+교보도서관과 인증서 문제는 네이버 [e북카페](https://cafe.naver.com/ebook) 회원분들이 먼저 길을 열어 주신 덕분에 해결할 수 있었습니다. 각 글의 파일은 이 저장소에 포함하지 않으며, 원 글에서 직접 받아야 합니다.
+
+| 도움 받은 분 | 글 | 이 키트에서 쓴 부분 |
+|---|---|---|
+| 연어파 | [안드로이드4.4용 교보도서관 검색가능 패치앱](https://cafe.naver.com/ebook/958057) | 도서관 검색 API·웹방화벽을 고친 교보도서관 APK (`kyobo-compat`의 입력 파일) |
+| 긴꿈 | [누글삼, 리페프용 (안드로이드4.4) - 교보전자도서관, 밀리의 서재 실행가능 수정 패치](https://cafe.naver.com/ebook/932724) | 4.4 기기에서 최신 인증·WebView를 브리지로 처리하는 방식 |
+| 제크리(jecrits) | [크레마 사운드업 심폐소생기 (루팅 없이!!)](https://cafe.naver.com/ebook/946020) | 사운드업 시스템 이미지의 브리지 바이너리 (`kyobo-bridge`) |
+| nerious2 | `KyoboLibrary_1.2.0_patched_by_nerious2` | 전자잉크용 교보도서관 1.2.0 원본 패치 |
+| 불타는스님 | [크레마 사운드 알라딘 책다운, 리딩 등 정상화 방법](https://cafe.naver.com/ebook/933026) | 크레마 사운드 롬 백업·복구 절차 |
+| Choryu | [구형 크레마 지원중단 해결패치 (인증서 지원 중단)](https://cafe.naver.com/ebook/845146) | 최신 루트 인증서로 교체하는 방식 |
+| 헤겔티(hegelty) | [밀리의서재 Android 4.4용 APK 패치 방법](https://cafe.naver.com/ebook/966892), [millie-on-kitkat](https://github.com/hegelty/millie-on-kitkat) | 앱 내 Conscrypt 방식 등 구형 기기 밀리 실행 참고 |
+| — | [교보이북 구버전 로그인 이슈에 대한 고찰](https://cafe.naver.com/ebook/637813) | 교보 로그인 WebView가 구형 안드로이드에서 막히는 원인 분석 |
+
+글쓴이 이름은 카페 글 기준이며, 잘못된 부분이 있으면 알려 주세요.
