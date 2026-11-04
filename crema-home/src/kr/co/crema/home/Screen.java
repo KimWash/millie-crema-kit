@@ -173,7 +173,7 @@ final class Screen extends View {
         Koreader.Book cur = books.isEmpty() ? null : books.get(0);
 
         // cover slot 206x293
-        Bitmap cov = cur == null ? null : h.covers.get(cur.path, 206, 293);
+        Bitmap cov = cur == null ? null : h.covers.get(cur.coverPath(), 206, 293);
         if (cov != null) {
             ui.drawBitmap(c, cov, 28, 75);
         } else {
@@ -186,7 +186,7 @@ final class Screen extends View {
         if (cur != null) {
             ui.text(c, "이어 읽기", M, 16, TEXT3, x, 75, 20.8f, LEFT, 0);
             ui.textBlock(c, cur.title, B, 44, INK, x, 107.8f, 52.8f, w, 1, LEFT);
-            String meta = cur.authors != null && cur.authors.length() > 0 ? cur.authors : ext(cur.path);
+            String meta = withSource(cur, cur.authors != null && cur.authors.length() > 0 ? cur.authors : ext(cur.path));
             ui.text(c, meta, R, 18, TEXT3, x, 172.6f, 23.4f, LEFT, w);
             int page = cur.page();
             if (cur.pages > 0) ui.text(c, page + " / " + cur.pages + "쪽", M, 22, INK, x, 231.4f, 28.6f, LEFT, 0);
@@ -218,13 +218,13 @@ final class Screen extends View {
             Koreader.Book b = books.get(i);
             float top = 458.6f + shown * 117;
             if (shown > 0) ui.hline(c, top - 1, 28, 363, BORDER);
-            Bitmap bc = h.covers.get(b.path, 64, 92);
+            Bitmap bc = h.covers.get(b.coverPath(), 64, 92);
             if (bc != null) ui.drawBitmap(c, bc, 28, top + 12);
             else ui.drawImage(c, IMG_CAT_MINI, 60, top + 12 + 46);
             ui.outline(c, 28, top + 12, 92, top + 104, 3, 1, INK);
             float iy = top + 12 + (92 - 77f) / 2;
             ui.text(c, b.title, M, 18, INK, 108, iy, 23.4f, LEFT, 255);
-            String a = b.authors == null || b.authors.length() == 0 ? ext(b.path) : b.authors;
+            String a = withSource(b, b.authors == null || b.authors.length() == 0 ? ext(b.path) : b.authors);
             ui.text(c, a, R, 16, TEXT3, 108, iy + 25.4f, 20.8f, LEFT, 255);
             float py = iy + 48.2f + 8;
             if (b.done) ui.text(c, "다 읽음", M, 16, INK, 108, py, 20.8f, LEFT, 0);
@@ -315,6 +315,13 @@ final class Screen extends View {
         else ui.text(c, a.letter, B, 22, INK, cx, cy - 14.3f, 28.6f, CENTER, 0);
     }
 
+    /** "author · 교보 D-7" for books from another reader app. */
+    private static String withSource(Koreader.Book b, String meta) {
+        if (b.source == null) return meta;
+        String tag = b.due != null ? b.source + " " + b.due : b.source;
+        return meta == null || meta.length() == 0 ? tag : meta + " · " + tag;
+    }
+
     private static String ext(String path) {
         int d = path.lastIndexOf('.');
         return d > 0 ? path.substring(d + 1).toUpperCase(Locale.US) : "";
@@ -342,7 +349,7 @@ final class Screen extends View {
         for (int k = 0; k < LIB_PER_PAGE && start + k < books.size(); k++) {
             Koreader.Book b = books.get(start + k);
             float x = Math.round(28 + (k % 4) * 187.33f), y = Math.round(172 + (k / 4) * 252.2f);
-            Bitmap cov = h.covers.get(b.path, 140, 180);
+            Bitmap cov = h.covers.get(b.coverPath(), 140, 180);
             if (cov != null) {
                 ui.drawBitmap(c, cov, x, y);
                 ui.outline(c, x, y, x + 140, y + 180, 3, 1, BORDER);

@@ -31,6 +31,12 @@ final class Koreader {
         int pages;
         long time;
         boolean done;
+        /** Books from another reader app (교보도서관): how to open it, its cover image, a short label. */
+        String open, cover, source, due;
+
+        String coverPath() {
+            return cover != null ? cover : path;
+        }
 
         int page() {
             return pages <= 0 ? 0 : Math.max(1, (int) Math.round(pct * pages));

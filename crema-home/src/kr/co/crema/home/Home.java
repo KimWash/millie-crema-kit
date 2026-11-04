@@ -57,6 +57,9 @@ public class Home extends Activity implements Covers.Listener {
     private Ui ui;
     private Screen screen;
     private Koreader ko;
+    private final Kyobo kyobo = new Kyobo();
+    private Millie millie;
+    private Recency recency;
     private Handler io, main;
     private HandlerThread ioThread;
     private boolean appsDirty = true, resumed;
@@ -81,6 +84,8 @@ public class Home extends Activity implements Covers.Listener {
         ui = new Ui(this);
         dev = new Device(this);
         ko = new Koreader(getCacheDir());
+        millie = new Millie(getCacheDir());
+        recency = new Recency(this);
         feeds = new Feeds(getSharedPreferences("home", MODE_PRIVATE), getCacheDir());
         loadHomePkgs();
         covers = new Covers(getCacheDir(), io, main, this);
@@ -266,13 +271,16 @@ public class Home extends Activity implements Covers.Listener {
         appsDirty = false;
         io.post(new Runnable() {
             public void run() {
-                final List<Koreader.Book> b = ko.books();
+                List<Koreader.Book> other = new java.util.ArrayList<Koreader.Book>(kyobo.books());
+                other.addAll(millie.books());
+                recency.apply(other);                       // before sorting: may move them up
+                final List<Koreader.Book> b = mergeBooks(ko.books(), other);
                 final Koreader.Stats s = ko.stats();
                 final List<Apps.App> a = loadApps ? Apps.load(Home.this) : null;
                 final long[] st = Device.storage();
                 final Object[] sleep = loadSleep();
                 StringBuilder sig = new StringBuilder();
-                for (Koreader.Book x : b) sig.append(x.path).append(x.pct).append(x.title).append(';');
+                for (Koreader.Book x : b) sig.append(x.path).append(x.pct).append(x.title).append(x.due).append(';');
                 sig.append(s.todayMin).append('/').append(s.streakDays).append('/').append(st[0] >> 26);
                 if (a != null) sig.append("apps").append(a.size()).append(System.nanoTime());
                 sig.append('/').append(sleepMtime);
@@ -523,7 +531,7 @@ public class Home extends Activity implements Covers.Listener {
                 break;
             case Screen.A_RESUME:
             case Screen.A_BOOK:
-                if (arg < books.size()) openBook(books.get(arg).path);
+                if (arg < books.size()) openBook(books.get(arg));
                 break;
             case Screen.A_HOME_APP:
                 if (arg < homeApps.size()) launch(homeApps.get(arg));
@@ -676,6 +684,38 @@ public class Home extends Activity implements Covers.Listener {
             {"txt", "text/plain"}, {"html", "text/html"}, {"htm", "text/html"}, {"rtf", "application/rtf"},
             {"docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}, {"chm", "application/x-chm"},
     };
+
+    /** KOReader history and the 교보도서관 / 밀리 shelves as one list, most recently read first. */
+    static List<Koreader.Book> mergeBooks(List<Koreader.Book> a, List<Koreader.Book> b) {
+        if (b.isEmpty()) return a;
+        if (a.isEmpty()) return b;
+        java.util.ArrayList<Koreader.Book> out = new java.util.ArrayList<Koreader.Book>(a.size() + b.size());
+        out.addAll(a);
+        out.addAll(b);
+        java.util.Collections.sort(out, new java.util.Comparator<Koreader.Book>() {
+            public int compare(Koreader.Book x, Koreader.Book y) {
+                return Long.valueOf(y.time).compareTo(x.time);
+            }
+        });
+        return out;
+    }
+
+    private void openBook(Koreader.Book b) {
+        recency.opened(b);
+        if ("millie".equals(b.open)) {
+            // 밀리 has no way to open one book from outside: start it (via the wrapper); it resumes
+            Apps.App a = Apps.find(apps, Apps.MILLIE_LAUNCHER);
+            if (a == null) a = Apps.find(apps, Apps.MILLIE);
+            if (a != null) launch(a);
+            return;
+        }
+        if (b.open != null) {
+            // 교보도서관 opens the book in its own viewer (kyobo-compat deep link)
+            start(new Intent(Intent.ACTION_VIEW, Uri.parse(b.open)).setPackage(Kyobo.PKG));
+            return;
+        }
+        openBook(b.path);
+    }
 
     private void openBook(String path) {
         String ext = path.substring(path.lastIndexOf('.') + 1).toLowerCase(Locale.US);

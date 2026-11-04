@@ -5,3 +5,4 @@
 *.idsig
 .DS_Store
 millie-compat/tools/bin/
+kyobo-bridge/bin/

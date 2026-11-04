@@ -85,7 +85,9 @@ final class Covers {
         }
         Bitmap b = null;
         try {
-            if (path.toLowerCase().endsWith(".epub")) b = fromEpub(path, w, h);
+            String lp = path.toLowerCase();
+            if (lp.endsWith(".epub")) b = fromEpub(path, w, h);
+            else if (lp.endsWith(".jpg") || lp.endsWith(".jpeg") || lp.endsWith(".png")) b = fromImage(path, w, h);
         } catch (Throwable t) {
             b = null; // includes OutOfMemoryError on a huge image
         }
@@ -167,6 +169,26 @@ final class Covers {
         } finally {
             zip.close();
         }
+    }
+
+    /** A cover that is already an image file (e.g. exported by another reader app). */
+    private static Bitmap fromImage(String path, int w, int h) {
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, o);
+        if (o.outWidth <= 0) return null;
+        int sample = 1;
+        while (o.outWidth / (sample * 2) >= w && o.outHeight / (sample * 2) >= h) sample *= 2;
+        o = new BitmapFactory.Options();
+        o.inSampleSize = sample;
+        o.inPreferredConfig = Bitmap.Config.RGB_565;
+        o.inDither = false;
+        Bitmap src = BitmapFactory.decodeFile(path, o);
+        if (src == null) return null;
+        Bitmap out = cropTo(src, w, h);
+        src.recycle();
+        toGray16(out);
+        return out;
     }
 
     /** Center-crop ("object-fit: cover") into a w x h RGB_565 bitmap. */

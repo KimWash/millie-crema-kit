@@ -132,6 +132,45 @@ curl -LO https://github.com/koreader/koreader/releases/download/v2023.06.1/korea
 adb install koreader-android-arm-v2023.06.1.apk
 ```
 
+## 교보도서관 설치 (선택)
+
+교보전자도서관 앱(도서관 대출 전자책). 루팅과 아래 파일이 필요하다. 파일은 e북카페(cafe.naver.com/ebook) 글에서 받는다.
+
+| 파일 | 출처 |
+|---|---|
+| `KyoboLibrary_1.2.0_patched_by_salmonpa_260929.apk` | 연어파님 글 958057 (검색 API·웹방화벽 수정판) |
+| `crema-soundup-CREMA0660L-v1.0.44-system-by-jecrits-*.img` | 제크리님 글 946020 (브리지 바이너리만 추출해 사용) |
+
+1. 브리지 추출과 설치
+   ```bash
+   kyobo-bridge/extract.sh ~/Downloads/crema-soundup-CREMA0660L-v1.0.44-system-by-jecrits-20260706.img
+   ```
+   ```bash
+   kyobo-bridge/setup.sh
+   ```
+2. 앱 빌드와 설치 (기존 교보 앱이 있으면 먼저 삭제)
+   ```bash
+   kyobo-compat/build.sh ~/Downloads/KyoboLibrary_1.2.0_patched_by_salmonpa_260929.apk
+   ```
+   ```bash
+   adb install -r kyobo-compat/out/KyoboLibrary_1.2.0_crema.apk
+   ```
+3. 앱 설치 후 브리지를 다시 적용한다(앱 uid 반영).
+   ```bash
+   kyobo-bridge/setup.sh
+   ```
+4. 교보도서관 실행 → "업데이트" 안내가 나오면 **계속사용** → 도서관 검색 → 로그인.
+
+도서관 사이트에서 `certificate signed by unknown authority`가 표시되면 해당 사이트의 루트 인증서가 기기에 없는 것이다. [kyobo-bridge/README.md](kyobo-bridge/README.md#루트-인증서) 참고.
+
+### 크레마 홈에 밀리 서재 표시 (선택)
+
+교보 책은 교보 앱을 한 번 실행하면 자동으로 크레마 홈 서재에 나온다. 밀리 책을 표시하려면 다음을 실행한다.
+
+```bash
+crema-home/shelf-sync/setup.sh
+```
+
 ## 크레마 홈 사용법
 
 | 홈 | 서재 | 설정 |
@@ -157,6 +196,8 @@ adb install koreader-android-arm-v2023.06.1.apk
 |---|---|
 | 밀리가 로딩만 반복 | 홈 버튼 두 번 → 밀리의 ✕로 종료 후 다시 실행. 최초 1회 SuperSU 권한 요청은 허용 |
 | Wi-Fi 연결 상태인데 밀리가 인터넷 연결을 계속 대기 | 휴대폰 핫스팟에서 주로 발생. 아이폰은 설정 → 개인용 핫스팟 화면을 연 상태로 두고 "호환성 최대화"를 켠다. 계속되면 핫스팟을 껐다 켠다 |
+| 절전 후 Wi-Fi가 다시 연결되지 않음 | `adb shell su -c "settings put global wifi_sleep_policy 2"`. 핫스팟 대신 USB로 연결하려면 [usb-net](usb-net/README.md) |
+| 교보: 책 검색·다운로드가 "연결이 원활하지 않습니다" | Wi-Fi(또는 usb-net) 연결 확인. `kyobo-bridge/setup.sh` 재실행 |
 | 화면 잔상 | 탭을 전환하면 전체 갱신된다 |
 | 부트루프 | 부팅 중 `adb devices`에 기기가 보이면 [복원](#복원) 실행 |
 

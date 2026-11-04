@@ -13,7 +13,7 @@ APK 약 1.36MB, 메모리 약 8MB(PSS), 콜드 스타트 약 0.43초.
 | 탭 | 내용 |
 |---|---|
 | 홈 | 이어 읽기(표지, 쪽수, 진행률), 서재의 다른 책 3권, 홈 앱(최대 5개) |
-| 서재 | KOReader 읽기 기록 4×3 격자, 페이지 단위 이동. 선택 시 KOReader에서 실행 |
+| 서재 | KOReader·교보도서관·밀리의 서재 책을 최근 읽은 순으로 4×3 격자, 페이지 단위 이동. 선택 시 해당 앱에서 실행 |
 | 앱 | 설치된 앱 전체, 가나다 순, 2열 × 6행 |
 | 설정 | 프런트라이트(켜기/끄기, 5단계), Wi-Fi, 절전 화면 이미지, 홈 앱 선택, RSS 구독, 기기 정보 |
 
@@ -27,11 +27,33 @@ APK 약 1.36MB, 메모리 약 8MB(PSS), 콜드 스타트 약 0.43초.
 |---|---|
 | 읽기 기록, 진행률, 저자 | KOReader `history.lua`, `<책>.sdr/metadata.*.lua` |
 | 오늘 읽은 시간, 연속 독서일 | KOReader `settings/statistics.sqlite3` (복사본 사용) |
-| 표지 | EPUB 내부 표지 이미지 |
+| 교보도서관 서재 | `/sdcard/crema/kyobo_shelf.json`, `/sdcard/crema/covers/` ([`kyobo-compat`](../kyobo-compat/)이 교보 앱 안에서 기록) |
+| 밀리의 서재 서재 | `/sdcard/crema/.millie/books.db` ([`shelf-sync`](shelf-sync/)가 밀리 DB를 복사, 복사본을 다시 앱 캐시로 복사해 읽음) |
+| 표지 | EPUB 내부 표지 이미지. 교보는 내보낸 이미지, 밀리는 표지 URL을 앱 캐시로 1회 다운로드 |
 | 밝기 | `android.hardware.DeviceController`, 없으면 `/sys/class/backlight/rk28_bl/brightness` (0~160) |
 | RSS | 직접 수신. 기본값 GeekNews FeedBurner 미러 (원 주소는 4.2에서 지원하지 않는 암호만 허용) |
 
-밀리의 서재는 읽기 기록을 외부에 제공하지 않아 이어 읽기에 표시되지 않는다.
+## 교보도서관·밀리의 서재 책
+
+| | 교보도서관 | 밀리의 서재 |
+|---|---|---|
+| 표시 정보 | 제목, 저자, 표지, 진행률, 반납일(`교보 D-7`) | 제목, 저자, 표지, 진행률, 만료 30일 이내면 `밀리 D-20` |
+| 데이터 | 교보 앱 안의 코드가 서재 DB 변경 시 JSON으로 기록 | 루트 스크립트가 밀리 `books.db`만 20초 주기로 복사(앱 수정 불가: 무결성 검사) |
+| 열기 | `kyobolibrarykel://crema-open/<id>`로 해당 책을 교보 뷰어에서 바로 실행 | 밀리 실행(래퍼 경유). 특정 책을 외부에서 여는 방법 없음, 밀리가 마지막 화면을 복원 |
+| 제외 | 다운로드 안 된 책, 대출 기간이 지난 책 | 만료된 책 |
+
+- 계정 정보는 다루지 않는다. 교보 `login_record`, 밀리 `user.db`·쿠키는 읽거나 복사하지 않는다.
+- 책 파일(DRM)은 각 앱에 그대로 있다. 다른 앱으로 열 수 없다.
+
+### 최근 읽은 순서
+
+| 출처 | 기준 |
+|---|---|
+| KOReader | `history.lua`의 마지막으로 연 시각 |
+| 교보 | 마지막 접근 날짜(시각 없음, 정오로 간주) |
+| 밀리 | `readAt` (서버 동기화 시에만 갱신) |
+
+교보·밀리는 앱 기록만으로는 순서가 맞지 않아, 크레마 홈이 직접 기록한 시각도 함께 사용한다(`Recency`). 홈으로 돌아올 때 진행률이 바뀐 책은 그 시각, 홈에서 연 책은 연 시각. 셋 중 가장 최근 값으로 정렬한다.
 
 ## 최적화
 
@@ -60,9 +82,13 @@ APK 약 1.36MB, 메모리 약 8MB(PSS), 콜드 스타트 약 0.43초.
 ```
 crema-home/build.sh            # crema-home/out/crema-home.apk
 ./install.sh --crema-home
+crema-home/shelf-sync/setup.sh # (선택) 밀리 서재 표시. 기기에 /system/etc/millie-shelf.sh와 부팅 훅 추가
 ```
 
 설치 후 홈 버튼 → "크레마 홈" → "항상".
+
+- 서명 키는 `crema-home/local.keystore`(최초 빌드 시 생성). 다른 키로 서명된 크레마 홈이 이미 설치되어 있으면 업데이트 설치가 거부되므로 같은 키로 다시 서명하거나 삭제 후 설치한다(홈 설정 초기화).
+- `shelf-sync/setup.sh`는 `/sdcard/millie-crema-backup/<시각>-millie-shelf/restore.sh`를 남긴다.
 
 ## 기기 설정
 
@@ -79,6 +105,8 @@ adb shell settings put global animator_duration_scale 0
 ## 알려진 문제
 
 - 좌표가 758×1024 기준으로 고정
+- 교보·밀리 앱을 직접 열어 읽고 진행률이 바뀌지 않으면 순서가 올라가지 않음
+- 밀리 표지는 인터넷 연결 후 표시(실패 시 5분마다 재시도)
 - RSS "홈에 표시"는 설정값만 저장되며 홈 RSS 화면은 미구현
 - Wi-Fi 연결 상태에서 데이터가 전달되지 않는 경우를 감지하지 않음
 

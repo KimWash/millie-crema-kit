@@ -1,6 +1,6 @@
 # millie-crema-kit
 
-크레마 사운드(CREMA-0640L, Android 4.2.2)에서 밀리의 서재 2.4.0.0을 실행하기 위한 시스템 패치, 밀리 실행용 래퍼 앱, 전자잉크용 홈 런처와 설치 스크립트.
+크레마 사운드(CREMA-0640L, Android 4.2.2)에서 밀리의 서재 2.4.0.0과 교보도서관을 실행하기 위한 시스템 패치, 앱 재패키징, 밀리 실행용 래퍼 앱, 전자잉크용 홈 런처와 설치 스크립트.
 > 크레마 사운드는 사운드업과 다른 기기입니다. 사운드업이 더 최신 기종이고, 사운드는 젤리빈이라 사운드업보다 더 많은 패치가 필요합니다.
 
 설치 절차는 [GUIDE.md](GUIDE.md) 참고.
@@ -19,7 +19,7 @@ CREMA-0640L 실기기 화면 캡처(758×1024).
 |---|---|
 | 대상 기기 | CREMA-0640L (Rockchip RK3026, RAM 512MB, 758×1024 전자잉크, Android 4.2.2 / API 17) |
 | 대상 앱 | 밀리의 서재 `kr.co.millie.eink` 2.4.0.0 (minSdk 19) |
-| 방식 | 앱 APK는 수정하지 않고 기기 시스템(framework.jar, core.jar, 설정 파일)을 패치 |
+| 방식 | 밀리: APK는 수정하지 않고 기기 시스템(framework.jar, core.jar, 설정 파일)을 패치. 교보도서관: 사용자가 받은 APK를 재패키징 |
 
 배경:
 - 밀리 2.4.0.0은 Android 4.4(API 19) 이상을 요구한다. 4.2에서는 설치가 거부되고, 설치해도 실행 중에 4.4 API 호출로 종료된다.
@@ -32,13 +32,18 @@ CREMA-0640L 실기기 화면 캡처(758×1024).
 |---|---|
 | [`millie-compat/`](millie-compat/) | 시스템 패치. API 18/19 역이식, TLS 1.2·GCM, WebView `evaluateJavascript` 브리지, PDF·WebView용 LD_PRELOAD shim, 성능 설정 |
 | [`millie-launcher/`](millie-launcher/) | 밀리 실행용 래퍼 앱. 멈추는 스플래시를 건너뛰고 LoginActivity를 직접 실행, 네트워크 대기, 종료된 프로세스의 태스크 정리 |
-| [`crema-home/`](crema-home/) | 홈 런처. KOReader 읽기 기록·서재, 프런트라이트·Wi-Fi 설정, 실행 중인 앱 관리 |
+| [`crema-home/`](crema-home/) | 홈 런처. KOReader·교보도서관·밀리 서재와 이어 읽기, 프런트라이트·Wi-Fi 설정, 실행 중인 앱 관리 |
+| [`kyobo-compat/`](kyobo-compat/) | 교보도서관 1.2.0 재패키징. 도서관 웹페이지 ES5·CSS 변환, API 18/19 대체, 서재 공유 |
+| [`kyobo-bridge/`](kyobo-bridge/) | 교보 앱 전용 TLS 브리지 설정(제크리 사운드업 이미지의 바이너리 사용, 저장소 미포함) |
+| [`usb-net/`](usb-net/) | Mac 인터넷을 USB(adb, PPP)로 크레마에 연결 |
 | `install.sh` | 설치 스크립트. 항목 선택, 기기 백업과 복원 스크립트 생성 |
 | `scripts/common.sh` | 공용 셸 함수 |
 
 ## 동작 범위
 
-- 로그인, 서재, 다운로드, EPUB·PDF 보기, 검색
+- 밀리: 로그인, 서재, 다운로드, EPUB·PDF 보기, 검색
+- 교보도서관: 도서관 검색, 로그인, 책 검색, 대출, 다운로드, EPUB 보기 (인천대학교 도서관에서 확인)
+- 크레마 홈에서 세 앱(KOReader, 교보, 밀리)의 책을 한 서재로 표시
 - 밀리 APK 미수정, DRM·구독 처리는 앱의 기존 모듈이 그대로 수행
 - 밀리의 로고·아이콘·코드는 저장소에 포함하지 않음. 런처 로고는 빌드 시 사용자 APK에서 추출(`--apk`), 크레마 홈은 설치된 앱의 아이콘을 실행 시 사용
 
@@ -87,7 +92,7 @@ adb shell su -c "sh /sdcard/millie-crema-backup/<시각>/restore.sh" && adb rebo
 - 책을 연 직후 앱 내부 JSON 처리로 30~45초 지연 (앱 코드)
 - PDF의 R/B 채널이 바뀌어 표시됨
 - EPUB 사용 후 PDF를 열면 메모리 부족으로 프로세스가 종료되는 경우가 있음
-- 휴대폰 핫스팟 사용 시 절전 해제 후 연결 상태로 표시되지만 데이터가 전달되지 않는 경우가 있음
+- 휴대폰 핫스팟 사용 시 절전 해제 후 연결 상태로 표시되지만 데이터가 전달되지 않는 경우가 있음. 펌웨어가 절전 후 Wi-Fi 드라이버를 다시 켜지 않음(`wifi_sleep_policy 2`로 완화, [`usb-net`](usb-net/) 참고)
 
 ## 디렉터리 구조
 
@@ -96,6 +101,9 @@ install.sh
 scripts/common.sh
 millie-compat/
 millie-launcher/
-crema-home/
+crema-home/            crema-home/shelf-sync/ (밀리 서재 복사)
+kyobo-compat/
+kyobo-bridge/
+usb-net/
 GUIDE.md
 ```
