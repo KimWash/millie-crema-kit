@@ -130,3 +130,6 @@ GUIDE.md
 | — | [교보이북 구버전 로그인 이슈에 대한 고찰](https://cafe.naver.com/ebook/637813) | 교보 로그인 WebView가 구형 안드로이드에서 막히는 원인 분석 |
 
 글쓴이 이름은 카페 글 기준이며, 잘못된 부분이 있으면 알려 주세요.
+
+
+![Views](https://komarev.com/ghpvc/?username=KimWash-millie-crema&label=Views&color=blue&style=flat)
